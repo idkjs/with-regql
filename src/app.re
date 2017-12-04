@@ -8,8 +8,6 @@ let query = {|
     company: Company (id: $id) {
       id
       name
-      logo
-      url
     }
   }
 |};
@@ -39,7 +37,7 @@ let component = ReasonReact.statelessComponent("App");
 let make = (~message, _children) => {
   ...component,
   render: (_self) => {
-    let variables = {"id": "cj9pnqcwi00k801059imcqojg"};
+    let variables = Some({"id": "cj9pnqcwi00k801059imcqojg"});
     <div className="App">
       <div className="App-header">
         <img src=logo className="App-logo" alt="logo" />
