@@ -2,7 +2,6 @@
 
 [@bs.module] external logo : string = "./logo.svg";
 
-/* open Regql; */
 let query = {|
   query allCompanies($filter: String) {
     allCompanies(filter: 
@@ -24,24 +23,24 @@ type allCompanies = {
   allCompanies:array(company)
 };
 
-type data = {company:company};
+/* type data = {company:company}; */
 
 let company = (json) =>
   Json.Decode.{
     id: json |> field("id", string),
-    name: json |> field("name", string),
+    name: json |> field("name", string)
   };
 
-let data = (json) =>
+let allCompanies = (json) =>
   Json.Decode.{
-    company: json |> field("company", company)
+    allCompanies: json |> field("allCompanies", array(company))
   };
 /* let data = (json) => Json.Decode.field("allCompanies", Json.Decode.array(company), json); */
 
 module Container = {
-  type shape = data;
+  type shape = company;
   type variables = {. filter: string};
-  let decoder = data;
+  let decoder = allCompanies;
 };
 
 module FetchCompanies = Gql.Client(Container);
@@ -69,16 +68,15 @@ let make = (~message, _children) => {
             | Loading => <div> (ReasonReact.stringToElement("Loading")) </div>
             | Failed(error) => <div> (ReasonReact.stringToElement(error)) </div>
             | Loaded(result) => 
+          
             <div> 
             (
               ReasonReact.arrayToElement(
-                Array.map(
-                  (company) => <div> (ReasonReact.stringToElement(result.company.name)) </div>,
-                  result##data##allCompanies
-                )
+                Array.map((company) => <div>(ReasonReact.stringToElement(company.name)) </div>,
+                result.allCompanies)
               )
             )
-            </div>
+            </div> 
           }
         )
       </FetchCompanies>
