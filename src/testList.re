@@ -1,4 +1,4 @@
-[%bs.raw {|require('./app.css')|}];
+/* [%bs.raw {|require('./app.css')|}];
 
 [@bs.module] external logo : string = "./logo.svg";
 
@@ -14,29 +14,27 @@ let query = {|
   }
 |};
 
-
 type company = {
   id: string,
   name: string
 };
 
-type allCompanies = {
-  allCompanies:array(company)
-};
 
-type data = {company:company};
+type data = {allCompanies: list(company)};
+
+/* type companies = {allCompanies: array(company)}; */
+
+/* type company = {
+  id: string,
+  name: string
+}; */
 
 let company = (json) =>
-  Json.Decode.{
-    id: json |> field("id", string),
-    name: json |> field("name", string),
-  };
+  Json.Decode.{id: json |> field("id", string), name: json |> field("name", string)};
+  
+/* let data = (json) => Json.Decode.{company: json |> field("company", company)}; */
 
-let data = (json) =>
-  Json.Decode.{
-    company: json |> field("company", company)
-  };
-/* let data = (json) => Json.Decode.field("allCompanies", Json.Decode.array(company), json); */
+let data = (json) => Json.Decode.field("allCompanies", Json.Decode.array(company), json);
 
 module Container = {
   type shape = data;
@@ -73,8 +71,7 @@ let make = (~message, _children) => {
             (
               ReasonReact.arrayToElement(
                 Array.map(
-                  (company) => <div> (ReasonReact.stringToElement(result.company.name)) </div>,
-                  result##data##allCompanies
+                  (company) => <div> (ReasonReact.stringToElement(result.company.name)) </div>
                 )
               )
             )
@@ -84,4 +81,4 @@ let make = (~message, _children) => {
       </FetchCompanies>
     </div>
   }
-};
+}; */
