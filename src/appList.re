@@ -4,7 +4,7 @@
 
 let query = {|
   query allCompanies($filter: String) {
-    allCompanies(filter: 
+    companies: allCompanies(filter: 
     { name_contains: $filter
     }) {
       id
@@ -19,8 +19,8 @@ type company = {
   name: string
 };
 
-type allCompanies = {
-  allCompanies:array(company)
+type companies = {
+  companies:array(company)
 };
 
 /* type data = {company:company}; */
@@ -31,16 +31,16 @@ let company = (json) =>
     name: json |> field("name", string)
   };
 
-let allCompanies = (json) =>
+let companies = (json) =>
   Json.Decode.{
-    allCompanies: json |> field("allCompanies", array(company))
+    companies: json |> field("companies", array(company))
   };
 /* let data = (json) => Json.Decode.field("allCompanies", Json.Decode.array(company), json); */
 
 module Container = {
-  type shape = company;
+  type shape = companies;
   type variables = {. filter: string};
-  let decoder = allCompanies;
+  let decoder = companies;
 };
 
 module FetchCompanies = Gql.Client(Container);
@@ -73,7 +73,7 @@ let make = (~message, _children) => {
             (
               ReasonReact.arrayToElement(
                 Array.map((company) => <div>(ReasonReact.stringToElement(company.name)) </div>,
-                result.allCompanies)
+                result.companies)
               )
             )
             </div> 
