@@ -9,7 +9,11 @@ separates each constructor. */
 /* type state = Init(string) | HasQuery(string); */
 type state = {
   inputValue: string,
-  variables: string
+  variables: option(string)
+};
+
+type retainedProps = {
+  filter: string
 };
 
 type action =
@@ -54,26 +58,23 @@ let companies = (json) =>
 module Container = {
   type shape = companies;
   type variables = {filter:string};
+  /* type variables; */
+
   let decoder = companies;
 };
 
 module FetchCompanies = Gql.Client(Container);
 
-let component = ReasonReact.reducerComponent("AppListInput");
-
-let make = (~message, _children) => {
+let component = ReasonReact.statelessComponentWithRetainedProps("AppListInput");
+let make = (~message, ~filter, _children) => {
   ...component,
-  /* initialState: () =>  Init(""), */
-  initialState: () => {inputValue:"", variables:""},
-  reducer: (action, state) => {
-    switch action {
-      | InputChange(newVal) => ReasonReact.Update({...state, inputValue:newVal })
-      | EnterPressed => 
-      ReasonReact.UpdateWithSideEffects(
-        {...state, inputValue: "", variables: state.inputValue},
-          ((self) => Js.log("Updated State: " ++ self.state.variables))
-        )
-    }
+  retainedProps: { filter: filter }, 
+  didUpdate: ({oldSelf, newSelf}) =>
+    if (oldSelf.retainedProps.filter !== newSelf.retainedProps.filter) {
+      /* do whatever sneaky imperative things here */
+      let variables = newSelf.retainedProps.filter;
+
+      Js.log("props `filter` changed!")
   },
   render: (self) => {
     let handleInputChange = (e) => {
@@ -89,10 +90,7 @@ let make = (~message, _children) => {
         ()
       }
     };
-    let variables = Some({
-      "filter": self.state.variables
-    });
-    /* let variables = Some({"filter": "ta"}); */
+    let variables = Some(self.retainedProps.filter);
     <div className="App">
       <div className="App-header">
         <img src=logo className="App-logo" alt="logo" />
