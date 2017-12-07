@@ -6,14 +6,8 @@
 /* aren't strings, nor references, nor some special data type. 
 They're called "constructors" (or "tag"). The | bar 
 separates each constructor. */
-/* type state = Init(string) | HasQuery(string); */
 type state = {
-  inputValue: string,
-  variables: option(string)
-};
-
-type retainedProps = {
-  filter: string
+  filter:string
 };
 
 type action =
@@ -59,38 +53,61 @@ module Container = {
   type shape = companies;
   type variables = {filter:string};
   /* type variables; */
-
   let decoder = companies;
 };
 
 module FetchCompanies = Gql.Client(Container);
 
-let component = ReasonReact.statelessComponentWithRetainedProps("AppListInput");
-let make = (~message, ~filter, _children) => {
-  ...component,
-  retainedProps: { filter: filter }, 
-  didUpdate: ({oldSelf, newSelf}) =>
-    if (oldSelf.retainedProps.filter !== newSelf.retainedProps.filter) {
-      /* do whatever sneaky imperative things here */
-      let variables = newSelf.retainedProps.filter;
+/* function to get text value from our input box */
+let valueFromEvent = (evt) : string => (
+  evt
+  |> ReactEventRe.Form.target
+  |> ReactDOMRe.domElementToObj
+)##value;
 
-      Js.log("props `filter` changed!")
-  },
-  render: (self) => {
-    let handleInputChange = (e) => {
-      let value = ReactDOMRe.domElementToObj(ReactEventRe.Form.target(e))##value;
-      InputChange(value)
-    };
-    let handleKeyDown = (e) => {
-      let key = ReactEventRe.Keyboard.key(e);
-      if (key == "Enter") {
-        key |> Js.log;
-        self.reduce(() => EnterPressed)()
-        } else {
-        ()
-      }
-    };
-    let variables = Some(self.retainedProps.filter);
+/* standalone module for our input element */
+module Input = {
+  /* For this component, our state type is just string, 
+  because that's all we need to keep track of. onChange prop is called with a Form event
+  from which we will get the text value and use it as the new state. We have to define valueFromEvent 
+  somewhere */
+  type state = string;
+  let component = ReasonReact.reducerComponent("Input");
+  let make = (~onSubmit, _) => {
+    ...component,
+    initialState: () => "",
+    /* We only have one kind of action here, so we don't need to declare a separate action 
+    type -- we just use a string, 'newText' */
+    reducer: (newText, _text) => ReasonReact.Update(newText),
+    render: ({state: text, reduce}) =>
+      <input
+        value=text
+        _type="text"
+        placeholder="Search for Company Names"
+        onChange=(reduce((evt) => valueFromEvent(evt)))
+        onKeyDown=((evt) => 
+          if (ReactEventRe.Keyboard.key(evt) == "Enter") {
+            onSubmit(text);
+            (reduce(() => ""))()
+          }
+        )
+      />
+  };
+};
+
+let component = ReasonReact.reducerComponent("AppListInput");
+let make = (~message, _children) => {
+  ...component,
+  initialState: () => {filter:""},
+  reducer: (action, state) => 
+    switch action {
+    | InputChange(text) => ReasonReact.Update({...state, filter:text})
+    },
+  render: ({state, reduce}) => {
+    let variables = Some({"filter" : state.filter});
+    Js.log(variables);
+    Js.log(query);
+    /* let variables = {"filter":state}; */
     <div className="App">
       <div className="App-header">
         <img src=logo className="App-logo" alt="logo" />
@@ -102,13 +119,9 @@ let make = (~message, ~filter, _children) => {
         (ReasonReact.stringToElement("and save to reload."))
       </p>
       <div>
-        <input
-          _type="text"
-          value=self.state.inputValue
-          onChange=(self.reduce(handleInputChange))
-          onKeyDown=handleKeyDown
-        />
+        <Input onSubmit=(reduce((text) => InputChange(text))) />
         <FetchCompanies query variables>
+        
           (
             (response) =>
               switch response {
