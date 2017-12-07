@@ -2,10 +2,6 @@
 
 [@bs.module] external logo : string = "./logo.svg";
 
-
-/* aren't strings, nor references, nor some special data type. 
-They're called "constructors" (or "tag"). The | bar 
-separates each constructor. */
 type state = {
   filter:string
 };
@@ -33,8 +29,6 @@ type company = {
 type companies = {
   companies:array(company)
 };
-
-/* type data = {company:company}; */
 
 let company = (json) =>
   Json.Decode.{
@@ -66,17 +60,11 @@ let valueFromEvent = (evt) : string => (
 
 /* standalone module for our input element */
 module Input = {
-  /* For this component, our state type is just string, 
-  because that's all we need to keep track of. onChange prop is called with a Form event
-  from which we will get the text value and use it as the new state. We have to define valueFromEvent 
-  somewhere */
   type state = string;
   let component = ReasonReact.reducerComponent("Input");
   let make = (~onSubmit, _) => {
     ...component,
     initialState: () => "",
-    /* We only have one kind of action here, so we don't need to declare a separate action 
-    type -- we just use a string, 'newText' */
     reducer: (newText, _text) => ReasonReact.Update(newText),
     render: ({state: text, reduce}) =>
       <input
@@ -108,6 +96,7 @@ let make = (~message, _children) => {
     });
     Js.log(variables);
     Js.log(query);
+    Js.log(state);
     <div className="App">
       <div className="App-header">
         <img src=logo className="App-logo" alt="logo" />
