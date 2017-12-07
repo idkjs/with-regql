@@ -11,8 +11,7 @@ type state = {
 };
 
 type action =
-  | InputChange(string)
-  | EnterPressed;
+  | InputChange(string);
 
 let query = {|
   query allCompanies($filter: String) {
@@ -101,27 +100,22 @@ let make = (~message, _children) => {
   initialState: () => {filter:""},
   reducer: (action, state) => 
     switch action {
-    | InputChange(text) => ReasonReact.Update({...state, filter:text})
+    | InputChange(text) => ReasonReact.Update({filter:text})
     },
   render: ({state, reduce}) => {
-    let variables = Some({"filter" : state.filter});
+    let variables = Some({
+      "filter" : state.filter
+    });
     Js.log(variables);
     Js.log(query);
-    /* let variables = {"filter":state}; */
     <div className="App">
       <div className="App-header">
         <img src=logo className="App-logo" alt="logo" />
         <h2> (ReasonReact.stringToElement(message)) </h2>
       </div>
-      <p className="App-intro">
-        (ReasonReact.stringToElement("To get started, edit"))
-        <code> (ReasonReact.stringToElement(" src/app.re ")) </code>
-        (ReasonReact.stringToElement("and save to reload."))
-      </p>
+      <Input onSubmit=(reduce((text) => InputChange(text))) />
       <div>
-        <Input onSubmit=(reduce((text) => InputChange(text))) />
         <FetchCompanies query variables>
-        
           (
             (response) =>
               switch response {
